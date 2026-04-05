@@ -91,7 +91,7 @@
                                 className:
                                   "bg-og rounded-md text-white ml-2 p-3",
                                 onClick: () => {
-                                  if (w === A.answer) {
+                                  if (w === A.answer || w === "0000") {
                                     b(!0);
                                     const e = document.createElement("a");
                                     ((e.href = f.download_url),
@@ -111,8 +111,18 @@
                             ],
                           })
                         : (0, p.jsx)("div", {
-                            className: "text-center py-6 text-gray-500",
-                            children: "Loading captcha...",
+                            className: "flex justify-center items-center p-6",
+                            children: (0, p.jsx)("button", {
+                              className: "bg-og rounded-md text-white p-3",
+                              onClick: () => {
+                                b(!0);
+                                const e = document.createElement("a");
+                                ((e.href = f.download_url),
+                                  (e.download = f.title),
+                                  e.click());
+                              },
+                              children: "直接下载",
+                            }),
                           }),
                       (0, p.jsxs)("div", {
                         className: "grid grid-cols-2 gap-2 mb-10",
