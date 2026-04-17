@@ -67,7 +67,7 @@
   }
 
   /* Make all main containers/cards look modern */
-  .bg-white, .dark .bg-bbk, .dark .bg-nbk {
+  .bg-white:not(.w-full):not(.fixed):not(.sticky):not(.absolute), .dark .bg-bbk:not(.w-full):not(.fixed):not(.sticky):not(.absolute), .dark .bg-nbk:not(.w-full):not(.fixed):not(.sticky):not(.absolute) {
     border-radius: var(--theme-radius);
     box-shadow: var(--theme-shadow-light);
     transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
@@ -108,7 +108,52 @@
     margin-right: 0.5rem !important;
     font-weight: 600 !important;
   }
-  
+
+  /* Remove Category Page Borders */
+  .border-\[1px\], .border-\[\#bbb\], .border-\[\#ccc\], .border-gy, .border-tgy, .border-solid {
+    border-color: transparent !important;
+  }
+  .dark .border-white, .dark .border-\[\#bbb\] {
+    border-color: transparent !important;
+  }
+
+  /* Make Category Items Soft Cards */
+  .flex.border-\[1px\].rounded-md, .text-center.border.rounded-md, .truncate.text-center.border {
+    background-color: var(--theme-card-light) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+    border-radius: 12px !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.3s ease;
+  }
+  .dark .flex.border-\[1px\].rounded-md, .dark .text-center.border.rounded-md, .dark .truncate.text-center.border {
+    background-color: var(--theme-card-dark) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+  }
+
+  /* Fix for J Coins & Charge Progress Bar */
+  /* Ensure the progress bar container has no weird lines crossing */
+  .border-2.border-tgy.my-4 {
+    border: none !important;
+    background: var(--theme-card-light) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--theme-shadow-light) !important;
+  }
+  .dark .border-2.border-tgy.my-4 {
+    background: var(--theme-card-dark) !important;
+    box-shadow: var(--theme-shadow-dark) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+  }
+  .bg-og.text-white.rounded.border-solid.border-2.border-og {
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(255, 123, 0, 0.4) !important;
+  }
+
+  /* Remove weird empty black box at top of Profile */
+  .h-40.bg-black {
+    display: none !important;
+  }
+
   /* Comments Section Redesign */
   /* Target comment wrappers and inputs */
   .border.rounded-lg, .border.rounded-md {
@@ -148,7 +193,7 @@
   .dark input:focus, .dark textarea:focus {
     background: var(--theme-card-dark) !important;
   }
-  .dark .bg-white, .dark .bg-bbk, .dark .bg-nbk {
+  .dark .bg-white:not(.w-full):not(.fixed):not(.sticky):not(.absolute), .dark .bg-bbk:not(.w-full):not(.fixed):not(.sticky):not(.absolute), .dark .bg-nbk:not(.w-full):not(.fixed):not(.sticky):not(.absolute) {
     background-color: var(--theme-card-dark) !important;
     box-shadow: var(--theme-shadow-dark);
     border: 1px solid rgba(255,255,255,0.05);
@@ -168,10 +213,10 @@
   .grid > div {
     border-radius: var(--theme-radius);
     overflow: hidden;
-    background: var(--theme-card-light);
+    background: transparent !important;
   }
   .dark .grid > div {
-    background: var(--theme-card-dark);
+    background: transparent !important;
   }
   
   /* Tag & Chip Enhancements */
