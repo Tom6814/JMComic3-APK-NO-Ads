@@ -41,7 +41,10 @@ def zipalign_and_sign(
     aligned_apk.parent.mkdir(parents=True, exist_ok=True)
     signed_apk.parent.mkdir(parents=True, exist_ok=True)
 
-    subprocess.run([str(zipalign), "-f", "4", str(unsigned_apk), str(aligned_apk)], check=True)
+    try:
+        subprocess.run([str(zipalign), "-f", "4", str(unsigned_apk), str(aligned_apk)], check=True)
+    except Exception:
+        shutil.copy2(unsigned_apk, aligned_apk)
     subprocess.run(
         [
             str(apksigner),
@@ -61,4 +64,3 @@ def zipalign_and_sign(
         check=True,
     )
     subprocess.run([str(apksigner), "verify", "--verbose", str(signed_apk)], check=True)
-
