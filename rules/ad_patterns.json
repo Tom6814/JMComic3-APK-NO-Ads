@@ -45,6 +45,21 @@
       "replace": "children:!1&&F&&null!==(null===F||void 0===F?void 0:F.advs)"
     },
     {
+      "name": "disable_ads_cache_read",
+      "pattern": "i=JSON\\.parse\\(localStorage\\.getItem\\(\\\"adsList\\\"\\)\\)\\|\\|\\{\\}",
+      "replace": "i={}"
+    },
+    {
+      "name": "disable_ads_cache_write",
+      "pattern": "localStorage\\.setItem\\(\\\"adsList\\\",JSON\\.stringify\\(a\\)\\)",
+      "replace": "0"
+    },
+    {
+      "name": "disable_thewayhome_route_keylist",
+      "pattern": "h=\\[\\\"app_thewayhome\\\"\\]",
+      "replace": "h=[]"
+    },
+    {
       "name": "disable_feed_inline_ads_1",
       "pattern": "!r\\.ad_free&&i>0&&i%10===0",
       "replace": "!1"
