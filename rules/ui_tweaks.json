@@ -1,0 +1,8 @@
+{
+  "css_append": [
+    {
+      "glob": "assets/public/static/css/*.css",
+      "append": "\n:root{--adfree-accent:#8b5cf6;}\n"
+    }
+  ]
+}

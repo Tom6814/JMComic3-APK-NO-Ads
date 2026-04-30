@@ -1,0 +1,28 @@
+{
+  "file_globs": [
+    "assets/public/static/js/*.js",
+    "assets/public/static/css/*.css",
+    "assets/public/index.html",
+    "AndroidManifest.xml"
+  ],
+  "string_blocklist": [
+    "admob",
+    "doubleclick.net",
+    "gdt",
+    "pangle",
+    "bytedance",
+    "reward",
+    "interstitial"
+  ],
+  "regex_rewrites": [
+    {
+      "name": "disable_ad_init_common",
+      "pattern": "(?s)\\b(initAd|initAds|loadAd|loadAds)\\s*\\(",
+      "replace": "(function(){return;})("
+    }
+  ],
+  "resource_drop_globs": [
+    "assets/public/images/*ad*.*",
+    "assets/public/images/custom_ad.*"
+  ]
+}
