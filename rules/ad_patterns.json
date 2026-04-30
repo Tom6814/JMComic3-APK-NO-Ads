@@ -30,21 +30,6 @@
       "replace": "cover_default"
     },
     {
-      "name": "disable_ad_component_force_hide",
-      "pattern": "z=!0===\\(null===j\\|\\|void 0===j\\?void 0:j\\.ad_free\\)&&!S\\.includes\\(G\\)",
-      "replace": "z=!0"
-    },
-    {
-      "name": "disable_ad_component_initial_state",
-      "pattern": "\\(0,l\\.S0\\)\\(3e3\\),k=\\(0,o\\.useRef\\)\\(null\\),\\[q,w\\]=\\(0,o\\.useState\\)\\(!1\\)",
-      "replace": "(0,l.S0)(3e3),k=(0,o.useRef)(null),[q,w]=(0,o.useState)(!0)"
-    },
-    {
-      "name": "disable_ad_component_render_gate",
-      "pattern": "children:!q&&F&&null!==\\(null===F\\|\\|void 0===F\\?void 0:F\\.advs\\)",
-      "replace": "children:!1&&F&&null!==(null===F||void 0===F?void 0:F.advs)"
-    },
-    {
       "name": "disable_ads_cache_read",
       "pattern": "i=JSON\\.parse\\(localStorage\\.getItem\\(\\\"adsList\\\"\\)\\)\\|\\|\\{\\}",
       "replace": "i={}"
@@ -58,6 +43,26 @@
       "name": "disable_ads_content_cache_write",
       "pattern": "localStorage\\.setItem\\(\\\"adsContent\\\",JSON\\.stringify\\(n\\.data\\)\\)",
       "replace": "0"
+    },
+    {
+      "name": "disable_cover_ads_dispatch",
+      "pattern": "200===n\\.code&&\\(e\\(n\\),t\\(\\(0,o\\.W_\\)\\(n\\.data\\)\\),0\\)",
+      "replace": "200===n.code&&(e(n),0,0)"
+    },
+    {
+      "name": "disable_all_ads_dispatch",
+      "pattern": "i&&t\\(\\(0,o\\.k_\\)\\(i\\)\\),e\\(n\\)",
+      "replace": "0,e(n)"
+    },
+    {
+      "name": "disable_devtools_redirect_if",
+      "pattern": "if\\(window\\.location\\.href\\.includes\\(\\\"devapp\\\"\\)\\)return alert\\(e\\(\\\"modal\\.devtools_blocked\\\"\\)\\),void\\(window\\.location\\.href=\\\"https://comicloveu\\.com/\\\"\\);",
+      "replace": "if(window.location.href.includes(\"devapp\"))return;"
+    },
+    {
+      "name": "disable_devtools_redirect_url",
+      "pattern": "window\\.location\\.href=\\\"https://comicloveu\\.com/\\\"",
+      "replace": "window.location.href=window.location.href"
     },
     {
       "name": "disable_cover_ads_content_usage",
