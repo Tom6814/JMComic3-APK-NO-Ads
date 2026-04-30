@@ -64,15 +64,26 @@ def upload_binary(url: str, file_path: Path, content_type: str) -> dict[str, Any
         return json.loads(resp.read().decode("utf-8"))
 
 
-def ensure_release(repo: str, tag: str, title: str, body: str) -> dict[str, Any]:
+def ensure_release(repo: str, tag: str, title: str, body: str, *, draft: bool = True) -> tuple[dict[str, Any], bool]:
     try:
-        return request_json("GET", f"{API}/repos/{repo}/releases/tags/{tag}")
+        return request_json("GET", f"{API}/repos/{repo}/releases/tags/{tag}"), False
     except Exception:
-        return request_json(
+        return (
+            request_json(
             "POST",
             f"{API}/repos/{repo}/releases",
-            data={"tag_name": tag, "name": title, "body": body, "draft": False, "prerelease": False},
+                data={"tag_name": tag, "name": title, "body": body, "draft": draft, "prerelease": False},
+            ),
+            True,
         )
+
+
+def update_release(repo: str, release_id: int, data: dict[str, Any]) -> dict[str, Any]:
+    return request_json("PATCH", f"{API}/repos/{repo}/releases/{release_id}", data=data)
+
+
+def delete_release(repo: str, release_id: int) -> None:
+    request_no_body("DELETE", f"{API}/repos/{repo}/releases/{release_id}")
 
 
 def delete_asset_if_exists(repo: str, release_id: int, name: str) -> None:
@@ -91,4 +102,3 @@ def upload_asset(repo: str, release_id: int, file_path: Path, name: str) -> dict
     delete_asset_if_exists(repo, release_id, name)
     url = upload_url + "?" + urllib.parse.urlencode({"name": name})
     return upload_binary(url, file_path, "application/vnd.android.package-archive")
-

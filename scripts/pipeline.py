@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import secrets
 import shutil
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +17,7 @@ if str(_ROOT) not in sys.path:
 
 from scripts.apk_io import strip_v1_signature_files, unzip_apk, zip_dir, zipalign_and_sign
 from scripts.git_utils import current_repo_slug, git
-from scripts.github_release import ensure_release, upload_asset
+from scripts.github_release import delete_release, ensure_release, update_release, upload_asset
 from scripts.patcher import apply_rules
 from scripts.tooling import cache_root, repo_root
 from scripts.upstream import download_file, get_latest_release, mark_processed, should_process
@@ -44,11 +46,24 @@ def log(tag: str, data: dict[str, Any]) -> None:
     write_json(log_path(tag), data)
 
 
+def sanitize_text(s: str) -> str:
+    return re.sub(r"x-access-token:[^@]+@", "x-access-token:***@", s)
+
+
+@dataclass
+class StageError(Exception):
+    stage: str
+    message: str
+
+    def __str__(self) -> str:
+        return f"{self.stage}: {self.message}"
+
+
+
 def ensure_git_clean() -> None:
     status = git(["status", "--porcelain"])
     if status.strip():
         raise RuntimeError("git working tree is not clean")
-
 
 def ensure_keystore() -> tuple[Path, str, str]:
     base = cache_root() / "keystore"
@@ -148,59 +163,98 @@ def main() -> int:
     work_dir = repo_root() / "artifacts" / "work" / tag
     out_dir = repo_root() / "artifacts" / "output" / tag
 
-    apk_in = input_dir / rel.apk_name
-    if not apk_in.exists():
-        download_file(rel.apk_url, apk_in)
+    stage = "init"
+    patch_report = None
+    try:
+        stage = "download"
+        apk_in = input_dir / rel.apk_name
+        if not apk_in.exists():
+            download_file(rel.apk_url, apk_in)
 
-    unpacked = work_dir / "unpacked"
-    unzip_apk(apk_in, unpacked)
+        stage = "unzip"
+        unpacked = work_dir / "unpacked"
+        unzip_apk(apk_in, unpacked)
 
-    patch_report = apply_rules(unpacked, ad_rules, ui_rules)
-    validation = validate_unpacked(unpacked, ad_rules)
-    if not validation.ok:
-        log(tag, {"stage": "validate", "errors": validation.errors, "patch_hits": patch_report.hits})
-        return 2
+        stage = "patch"
+        patch_report = apply_rules(unpacked, ad_rules, ui_rules)
 
-    strip_v1_signature_files(unpacked)
+        stage = "validate"
+        validation = validate_unpacked(unpacked, ad_rules)
+        if not validation.ok:
+            log(tag, {"stage": "validate", "errors": validation.errors, "patch_hits": patch_report.hits})
+            return 2
 
-    unsigned_apk = out_dir / f"jmcomic3_adfree_{tag}_unsigned.apk"
-    aligned_apk = out_dir / f"jmcomic3_adfree_{tag}_aligned.apk"
-    signed_apk = out_dir / f"jmcomic3_adfree_{tag}.apk"
+        stage = "strip-signature"
+        strip_v1_signature_files(unpacked)
 
-    zip_dir(unpacked, unsigned_apk)
-    ks, pw, alias = ensure_keystore()
-    zipalign_and_sign(unsigned_apk, aligned_apk, signed_apk, ks, pw, alias, pw)
+        stage = "repack"
+        unsigned_apk = out_dir / f"jmcomic3_adfree_{tag}_unsigned.apk"
+        aligned_apk = out_dir / f"jmcomic3_adfree_{tag}_aligned.apk"
+        signed_apk = out_dir / f"jmcomic3_adfree_{tag}.apk"
 
-    if args.dry_run:
-        log(tag, {"stage": "dry-run", "patch_hits": patch_report.hits})
-        return 0
+        zip_dir(unpacked, unsigned_apk)
 
-    sync_unpacked_into_repo(unpacked)
+        stage = "sign"
+        ks, pw, alias = ensure_keystore()
+        zipalign_and_sign(unsigned_apk, aligned_apk, signed_apk, ks, pw, alias, pw)
 
-    subprocess.run(["git", "add", "-A"], check=True)
-    if git(["status", "--porcelain"]).strip():
-        subprocess.run(["git", "commit", "-m", f"chore: sync upstream {tag} and apply patches"], check=True)
+        if args.dry_run:
+            log(tag, {"stage": "dry-run", "patch_hits": patch_report.hits})
+            return 0
 
-    if not args.no_push:
-        subprocess.run(["git", "push"], check=True)
+        stage = "sync-repo"
+        sync_unpacked_into_repo(unpacked)
 
-    if not args.no_release:
-        repo = current_repo_slug()
-        release_tag = f"{tag}-adfree"
-        release = ensure_release(
-            repo,
-            release_tag,
-            f"JMComic AdFree {tag}",
-            f"Upstream: {rel.tag_name}\nAsset: {rel.apk_name}\n",
-        )
-        upload_asset(repo, int(release["id"]), signed_apk, signed_apk.name)
+        stage = "git-commit"
+        subprocess.run(["git", "add", "-A"], check=True)
+        if git(["status", "--porcelain"]).strip():
+            subprocess.run(["git", "commit", "-m", f"chore: sync upstream {tag} and apply patches"], check=True)
 
-    mark_processed(state_path, rel, apk_in)
-    subprocess.run(["git", "add", "state/upstream.json"], check=True)
-    if git(["status", "--porcelain"]).strip():
-        subprocess.run(["git", "commit", "-m", f"chore: mark processed {tag}"], check=True)
+        stage = "git-push"
         if not args.no_push:
             subprocess.run(["git", "push"], check=True)
+
+        stage = "release"
+        if not args.no_release:
+            repo = current_repo_slug()
+            release_tag = f"{tag}-adfree"
+            release, created = ensure_release(
+                repo,
+                release_tag,
+                f"JMComic AdFree {tag}",
+                f"Upstream: {rel.tag_name}\nAsset: {rel.apk_name}\n",
+                draft=True,
+            )
+            try:
+                upload_asset(repo, int(release["id"]), signed_apk, signed_apk.name)
+                update_release(repo, int(release["id"]), {"draft": False})
+            except Exception as e:
+                if created:
+                    try:
+                        delete_release(repo, int(release["id"]))
+                    except Exception:
+                        pass
+                raise StageError("release", sanitize_text(str(e))) from e
+
+        stage = "mark-processed"
+        mark_processed(state_path, rel, apk_in)
+        subprocess.run(["git", "add", "state/upstream.json"], check=True)
+        if git(["status", "--porcelain"]).strip():
+            subprocess.run(["git", "commit", "-m", f"chore: mark processed {tag}"], check=True)
+            if not args.no_push:
+                subprocess.run(["git", "push"], check=True)
+
+    except StageError as e:
+        log(tag, {"stage": e.stage, "error": e.message, "patch_hits": getattr(patch_report, "hits", None)})
+        return 2
+    except subprocess.CalledProcessError as e:
+        msg = sanitize_text(str(e))
+        log(tag, {"stage": stage, "error": msg, "returncode": e.returncode, "patch_hits": getattr(patch_report, "hits", None)})
+        return 2
+    except Exception as e:
+        msg = sanitize_text(str(e))
+        log(tag, {"stage": stage, "error": msg, "type": type(e).__name__, "patch_hits": getattr(patch_report, "hits", None)})
+        return 2
 
     return 0
 
