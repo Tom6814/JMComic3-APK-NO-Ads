@@ -33,6 +33,11 @@
       "replace": "z=!0"
     },
     {
+      "name": "disable_ad_component_initial_state",
+      "pattern": "\\(0,l\\.S0\\)\\(3e3\\),k=\\(0,o\\.useRef\\)\\(null\\),\\[q,w\\]=\\(0,o\\.useState\\)\\(!1\\)",
+      "replace": "(0,l.S0)(3e3),k=(0,o.useRef)(null),[q,w]=(0,o.useState)(!0)"
+    },
+    {
       "name": "disable_feed_inline_ads_1",
       "pattern": "!r\\.ad_free&&i>0&&i%10===0",
       "replace": "!1"
