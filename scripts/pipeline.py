@@ -214,28 +214,6 @@ def main() -> int:
         if not args.no_push:
             subprocess.run(["git", "push"], check=True)
 
-        stage = "release"
-        if not args.no_release:
-            repo = current_repo_slug()
-            release_tag = f"{tag}-adfree"
-            release, created = ensure_release(
-                repo,
-                release_tag,
-                f"JMComic AdFree {tag}",
-                f"Upstream: {rel.tag_name}\nAsset: {rel.apk_name}\n",
-                draft=True,
-            )
-            try:
-                upload_asset(repo, int(release["id"]), signed_apk, signed_apk.name)
-                update_release(repo, int(release["id"]), {"draft": False})
-            except Exception as e:
-                if created:
-                    try:
-                        delete_release(repo, int(release["id"]))
-                    except Exception:
-                        pass
-                raise StageError("release", sanitize_text(str(e))) from e
-
         stage = "mark-processed"
         mark_processed(state_path, rel, apk_in)
         subprocess.run(["git", "add", "state/upstream.json"], check=True)
@@ -243,6 +221,26 @@ def main() -> int:
             subprocess.run(["git", "commit", "-m", f"chore: mark processed {tag}"], check=True)
             if not args.no_push:
                 subprocess.run(["git", "push"], check=True)
+
+        stage = "release"
+        if not args.no_release:
+            repo = current_repo_slug()
+            release_tag = f"{tag}-adfree"
+            title = f"JMComic AdFree {tag}"
+            body = f"Upstream: {rel.tag_name}\nAsset: {rel.apk_name}\n"
+            release, created = ensure_release(repo, release_tag, title, body, draft=True)
+            release_id = int(release["id"])
+            try:
+                update_release(repo, release_id, {"draft": True, "name": title, "body": body})
+                upload_asset(repo, release_id, signed_apk, signed_apk.name)
+                update_release(repo, release_id, {"draft": False})
+            except Exception as e:
+                if created:
+                    try:
+                        delete_release(repo, release_id)
+                    except Exception:
+                        pass
+                raise StageError("release", sanitize_text(str(e))) from e
 
     except StageError as e:
         log(tag, {"stage": e.stage, "error": e.message, "patch_hits": getattr(patch_report, "hits", None)})
