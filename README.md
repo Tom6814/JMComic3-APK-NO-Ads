@@ -19,3 +19,13 @@
 - 使用 `zip`/Python 脚本重新打包，并确保 `resources.arsc` 与图片资源以 `STORED` 方式写入
 - 使用 `zipalign` 做 4 字节对齐
 - 使用 `apksigner` 进行 V1/V2 签名
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=Tom6814%2FJMComic3-NO-Ads&type=timeline&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Tom6814/JMComic3-NO-Ads&type=timeline&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Tom6814/JMComic3-NO-Ads&type=timeline&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Tom6814/JMComic3-NO-Ads&type=timeline&legend=top-left" />
+ </picture>
+</a>
