@@ -13,6 +13,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
 
     steps:
       - name: Checkout repository
@@ -81,8 +84,6 @@ jobs:
             -noprompt
 
       - name: Zipalign APK
-        env:
-          ANDROID_SDK_ROOT: ${{ env.HOME }}/android-sdk
         run: |
           ZIPALIGN="$HOME/android-sdk/cmdline-tools/latest/bin/zipalign"
           if [ ! -f "$ZIPALIGN" ]; then
@@ -97,8 +98,6 @@ jobs:
           "$ZIPALIGN" -v -p 4 app-unsigned.apk app-aligned.apk
 
       - name: Sign APK
-        env:
-          ANDROID_SDK_ROOT: ${{ env.HOME }}/android-sdk
         run: |
           APKSIGNER="$HOME/android-sdk/build-tools/34.0.0/apksigner"
           if [ ! -f "$APKSIGNER" ]; then
