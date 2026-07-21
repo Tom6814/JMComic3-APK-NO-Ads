@@ -50,25 +50,36 @@ jobs:
 
       - name: Package APK (unsigned)
         run: |
-          # Create unsigned APK - include all APK components, exclude git/workflow files
-          zip -r app-unsigned.apk \
-            AndroidManifest.xml \
-            classes.dex \
-            DebugProbesKt.bin \
-            resources.arsc \
-            assets/ \
-            kotlin/ \
-            META-INF/ \
-            org/ \
-            res/ \
+          rm -f app-unsigned.apk
+          
+          # Step 1: resources.arsc MUST be stored uncompressed for Android to parse it
+          zip -D -0 app-unsigned.apk resources.arsc
+          
+          # Step 2: classes.dex also stored uncompressed
+          zip -D -0 app-unsigned.apk classes.dex
+          
+          # Step 3: Add AndroidManifest.xml and other root files
+          zip -D app-unsigned.apk AndroidManifest.xml DebugProbesKt.bin
+          
+          # Step 4: Add directories with compression, exclude git/unnecessary files
+          # -D : don't create explicit directory entries (required for valid APK)
+          # -n : don't try to compress already-compressed files (PNG, JPG, etc.)
+          zip -r -D -n ".png:.jpg:.jpeg:.gif:.webp:.mp3:.mp4:.ogg:.dex" app-unsigned.apk \
+            assets/ kotlin/ META-INF/ org/ res/ \
             -x "*.DS_Store" \
             -x "__MACOSX/*" \
             -x ".git/*" \
             -x ".github/*" \
             -x ".gitignore" \
-            -x "*.apk"
+            -x "*.apk" \
+            -x "*.keystore"
           
           echo "Unsigned APK size: $(du -h app-unsigned.apk | cut -f1)"
+          
+          # Verify APK structure
+          echo ""
+          echo "=== APK Contents (first 50 entries) ==="
+          unzip -l app-unsigned.apk | head -55
 
       - name: Generate debug keystore
         run: |
@@ -111,6 +122,11 @@ jobs:
             app-aligned.apk
           
           echo "Signed APK size: $(du -h app-release.apk | cut -f1)"
+          
+          # Verify the signed APK
+          echo ""
+          echo "=== Verifying APK signature ==="
+          "$APKSIGNER" verify --verbose app-release.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
