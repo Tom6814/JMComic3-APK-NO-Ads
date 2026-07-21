@@ -1,0 +1,152 @@
+name: Build Release APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Release tag (e.g. v2.0.29)'
+        required: false
+        default: 'v2.0.29'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Android SDK tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq zip unzip
+
+      - name: Download Android SDK Command-line Tools
+        run: |
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          cd $HOME/android-sdk/cmdline-tools
+          curl -sSL -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q cmdline-tools.zip
+          mv cmdline-tools latest
+          rm cmdline-tools.zip
+
+      - name: Prepare APK contents
+        run: |
+          # Remove old signature files (keep other META-INF files like AndroidX versions)
+          rm -f META-INF/CERT.RSA
+          rm -f META-INF/CERT.SF
+          rm -f META-INF/MANIFEST.MF
+
+      - name: Package APK (unsigned)
+        run: |
+          # Create unsigned APK - include all APK components, exclude git/workflow files
+          zip -r app-unsigned.apk \
+            AndroidManifest.xml \
+            classes.dex \
+            DebugProbesKt.bin \
+            resources.arsc \
+            assets/ \
+            kotlin/ \
+            META-INF/ \
+            org/ \
+            res/ \
+            -x "*.DS_Store" \
+            -x "__MACOSX/*" \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x ".gitignore" \
+            -x "*.apk"
+          
+          echo "Unsigned APK size: $(du -h app-unsigned.apk | cut -f1)"
+
+      - name: Generate debug keystore
+        run: |
+          keytool -genkey -v \
+            -keystore debug.keystore \
+            -alias debug \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=JMComic3, OU=Dev, O=JMComic3, L=Unknown, ST=Unknown, C=CN" \
+            -noprompt
+
+      - name: Zipalign APK
+        env:
+          ANDROID_SDK_ROOT: ${{ env.HOME }}/android-sdk
+        run: |
+          ZIPALIGN="$HOME/android-sdk/cmdline-tools/latest/bin/zipalign"
+          if [ ! -f "$ZIPALIGN" ]; then
+            # zipalign might be in build-tools, try to find it
+            ZIPALIGN=$(find $HOME/android-sdk -name zipalign -type f 2>/dev/null | head -1)
+          fi
+          if [ -z "$ZIPALIGN" ]; then
+            echo "zipalign not found, using sdkmanager to install build-tools"
+            yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk "build-tools;34.0.0"
+            ZIPALIGN="$HOME/android-sdk/build-tools/34.0.0/zipalign"
+          fi
+          "$ZIPALIGN" -v -p 4 app-unsigned.apk app-aligned.apk
+
+      - name: Sign APK
+        env:
+          ANDROID_SDK_ROOT: ${{ env.HOME }}/android-sdk
+        run: |
+          APKSIGNER="$HOME/android-sdk/build-tools/34.0.0/apksigner"
+          if [ ! -f "$APKSIGNER" ]; then
+            APKSIGNER=$(find $HOME/android-sdk -name apksigner -type f 2>/dev/null | head -1)
+          fi
+          "$APKSIGNER" sign \
+            --ks debug.keystore \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --out app-release.apk \
+            app-aligned.apk
+          
+          echo "Signed APK size: $(du -h app-release.apk | cut -f1)"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: JMComic3-v2.0.29-NoAds
+          path: app-release.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app-release.apk
+          tag_name: ${{ github.event.inputs.version_tag || 'v2.0.29' }}
+          name: "JMComic3 v2.0.29 - 去广告免更新版"
+          body: |
+            ## JMComic3 v2.0.29 去广告免更新版
+
+            ### 修改内容
+
+            **去除广告**
+            - 移除所有图片广告、动图广告、文字广告（35+ 广告位）
+            - 修改 7 个 chunk 文件的广告渲染逻辑
+
+            **去除强制更新**
+            - 熔断热更新状态机
+            - 移除版本检测与更新弹窗
+
+            **VIP 功能锁死**
+            - 永久开启全站免广告（`ad_free` 写死为 `true`）
+
+            ### 安装说明
+            1. 下载 `app-release.apk`
+            2. 卸载原版 JMComic3 应用
+            3. 安装此修改版 APK
+            4. 如需登录，使用原账号即可
+
+            > **免责声明**: 此版本仅供学习研究使用，请于下载后 24 小时内删除。
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

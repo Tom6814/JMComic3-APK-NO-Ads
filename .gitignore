@@ -1,0 +1,14 @@
+# Build output
+*.apk
+*.aab
+*.keystore
+
+# macOS
+.DS_Store
+__MACOSX
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JMComic 錯誤頁</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 2em;
+        background-color: #f9f9f9;
+        color: #333;
+      }
+      .container {
+        white-space: pre-wrap;
+        font-size: 14px;
+        background-color: #fff;
+        padding: 1.5em;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1em;
+      }
+      .btns-container {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+      }
+      button {
+        margin-right: 1em;
+        padding: 0.5em 1em;
+        font-size: 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background-color: #ff7b00;
+        color: white;
+      }
+      button:hover {
+        opacity: 0.9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="errorMsg">載入中...</div>
+    </div>
+    <div class="btns-container">
+      <button id="retryBtn">重試</button>
+      <button id="homeBtn">網頁</button>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const web_host = "https://18comic.vip/";
+        const currentTime = new Date().toLocaleString();
+        const key = window.location.pathname.split("/")[1] || "(無 key)";
+        const defaultErrorMsg = `發生錯誤，請回報管理員。\n\n現在時間：${currentTime}\n\n若仍有問題請截圖到官方 Discord 群：\n\nhttps://discord.gg/V74p7HM\n\n#網站與app問題回報`;
+
+        document.getElementById("errorMsg").textContent = defaultErrorMsg;
+
+        document.getElementById("retryBtn").addEventListener("click", () => {
+          location.reload();
+        });
+
+        document.getElementById("homeBtn").addEventListener("click", () => {
+          window.location.href = web_host;
+        });
+      });
+    </script>
+  </body>
+</html>
