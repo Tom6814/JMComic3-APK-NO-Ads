@@ -2,7 +2,7 @@ name: Build Release APK
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, no-games-no-movies]
   workflow_dispatch:
     inputs:
       version_tag:
