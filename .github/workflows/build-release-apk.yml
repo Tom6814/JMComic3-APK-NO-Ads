@@ -133,35 +133,3 @@ jobs:
         with:
           name: JMComic3-v2.0.29-NoAds
           path: app-release.apk
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: app-release.apk
-          tag_name: ${{ github.event.inputs.version_tag || 'v2.0.29' }}
-          name: "JMComic3 v2.0.29 - 去广告免更新版"
-          body: |
-            ## JMComic3 v2.0.29 去广告免更新版
-
-            ### 修改内容
-
-            **去除广告**
-            - 移除所有图片广告、动图广告、文字广告（35+ 广告位）
-            - 修改 7 个 chunk 文件的广告渲染逻辑
-
-            **去除强制更新**
-            - 熔断热更新状态机
-            - 移除版本检测与更新弹窗
-
-            **VIP 功能锁死**
-            - 永久开启全站免广告（`ad_free` 写死为 `true`）
-
-            ### 安装说明
-            1. 下载 `app-release.apk`
-            2. 卸载原版 JMComic3 应用
-            3. 安装此修改版 APK
-            4. 如需登录，使用原账号即可
-
-            > **免责声明**: 此版本仅供学习研究使用，请于下载后 24 小时内删除。
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
