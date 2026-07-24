@@ -12,3 +12,10 @@ __MACOSX
 .vscode/
 *.swp
 *.swo
+
+# Build artifacts
+build-artifact/
+
+# Backup files
+*.bak
+_*.png
