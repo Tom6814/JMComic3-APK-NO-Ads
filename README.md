@@ -27,10 +27,12 @@
 
 <a href="https://www.star-history.com/?repos=Tom6814%2FJMComic3-NO-Ads&type=timeline&legend=top-left">
 
-> 免责声明：本项目仅作技术学习/交流用途，请于下载后24小时内删除
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Tom6814/JMComic3-NO-Ads&type=timeline&theme=dark&legend=top-left" />
    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Tom6814/JMComic3-NO-Ads&type=timeline&legend=top-left" />
    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Tom6814/JMComic3-NO-Ads&type=timeline&legend=top-left" />
  </picture>
 </a>
+
+
+> 免责声明：本项目仅作技术学习/交流用途，请于下载后24小时内删除
