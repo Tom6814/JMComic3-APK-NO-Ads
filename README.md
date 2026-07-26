@@ -11,6 +11,24 @@
 ## 如何使用 / 下载
  [Releases](../../releases) 页面下载最新的 APK 安装包（苹果端请下载.mobileconfig文件）。
 
+## 自己修改/逆向 — Skills一键去广告 / 去板块
+
+逆向修改 APK 需要耗费大量人力物力：追踪 minified JS 中的广告链路、逐 chunk 修补、反复验证。为此，我将整个修改流程打包为 AI 可调用的 Skill，接入支持 Skill 的 AI 编程工具即可自动化执行。
+
+AI Skill存放在专属仓库中：
+
+→ **[Tom6814/jmcomic-apk-mod-skill](https://github.com/Tom6814/jmcomic-apk-mod-skill)**
+
+```bash
+git clone https://github.com/Tom6814/jmcomic-apk-mod-skill.git
+```
+
+支持的两种模式：**仅去广告**（保留游戏/电影）/ **去广告 + 去板块**。
+Skill 文件同时包含在本仓库 [`skills/`](skills/jmcomic-apk-mod/SKILL.md) 目录下作为参考（不参与 APK 打包）。
+
+> 即使不使用 AI 辅助，Skill 文档本身也是一份完整的逆向修改手册，包含广告链路追踪、实战踩坑、故障排查等内容。
+
+
 ## 源码说明
 此仓库包含的是解包并经过修改后的 APK 内部文件（React Chunks、资源文件等）。
 
@@ -21,19 +39,6 @@
 - 使用 `zipalign` 做 4 字节对齐
 - 使用 `apksigner` 进行 V1/V2 签名
 
-## AI 技能包
-
-修改流程已打包为独立的 AI Skill，存放在专属仓库中：
-
-→ **[Tom6814/jmcomic-apk-mod-skill](https://github.com/Tom6814/jmcomic-apk-mod-skill)**
-
-```bash
-git clone https://github.com/Tom6814/jmcomic-apk-mod-skill.git
-```
-
-支持的两种模式：**仅去广告**（保留游戏/电影）/ **去广告 + 去板块**。
-
-> Skill 文件同时包含在本仓库 [`skills/`](skills/jmcomic-apk-mod/SKILL.md) 目录下作为参考（不参与 APK 打包），但推荐直接克隆独立仓库获取最新版本。
 
 ## Star History
 
