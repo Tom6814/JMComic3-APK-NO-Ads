@@ -46,6 +46,8 @@ git clone https://github.com/Tom6814/jmcomic-apk-mod-skill.git
 
 此仓库包含解包并经过修改后的 APK 内部文件（React Chunks、资源文件等）。所有修改均为精确字符串替换，不做条件渲染或域名劫持。
 
+> Tip：项目中的`.b`文件是 Java/Kotlin ServiceLoader 服务注册文件，别当Brainfuck删了喵😛
+
 ⚡ 重新打包时**不要**使用 `jar c0Mf`，否则 `resources.arsc` 可能被错误压缩，导致安装报 `-2`。
 
 ✅ 建议流程：
