@@ -36,27 +36,28 @@ JMComic3 是一个 React SPA 应用，打包为 Android APK。理解以下三个
 广告通过两层机制运作：
 
 ```
-Module 8038（广告组件）
+Module 8038（广告组件，v2.0.29 ID，跨版本可能变化）
   └── 接收 adKey（如 "app_home_top"）渲染广告位
 
-Module 8284（文字链接）
+Module 8284（文字链接，v2.0.29 ID，跨版本可能变化）
   └── 通过 first_links 数据生成页面顶部文字广告
 ```
 
 ### 3. 关键文件
 
-| 文件 | 定位 |
-|------|------|
-| `main.*.js` | 主入口 — 路由表、lazy 组件、Redux store、chunk map |
-| `6809.*.chunk.js` | App Shell — 首页、确认页、闪屏页 |
-| `1791.*.chunk.js` | 共享模块 — 底部导航栏、广告组件(Module 8038)、设置页 |
-| `5884.*.chunk.js` | **搜索页面（绝对不能删！）** |
-| `7451.*.chunk.js` | 漫画详情页 |
-| `7999.*.chunk.js` | 共享模块 — 导航栏变体 + 文字链接(Module 8284) |
-| `3224.*.chunk.js` | 导航栏变体 |
-| `3742.*.chunk.js` | 导航栏变体 |
+以下按**功能角色**描述，非固定文件名。Chunk ID 在跨版本时保持不变的可能性较高，但 hash 部分每版必变。
 
-> Chunk 命名规则：`{ID}.{hash}.chunk.js`。ID 是数字（跨版本稳定），hash 随构建变化。
+| 角色 | 识别方式 | 定位 |
+|------|---------|------|
+| 主入口 | 文件名 `main.*.js`（不含 chunk） | 路由表、lazy 组件、Redux store、chunk map |
+| App Shell | 体积最大的 chunk，含首页/闪屏/确认页逻辑 | 首页渲染、确认页弹窗、闪屏页 |
+| 共享模块 1 | 含底部导航栏定义 + `Module 8038`（广告组件） | 导航栏、广告渲染、设置页 |
+| 共享模块 2 | 含底部导航栏变体 + `Module 8284`（文字链接） | 导航栏变体、文字链接广告 |
+| 搜索页面 | 含 `path:"/search"` 路由引用的 chunk | **绝对不能删！** |
+| 漫画详情页 | 含 `app_detail_tab_bottom` 相关广告位的 chunk | 详情页广告 |
+| 导航栏变体 3/4 | 与共享模块 2 类似的导航栏重复定义 | 同一份 tab 配置的副本 |
+
+> **自查方法**：用 `grep "n\.bind(n," main.*.js` 列出所有模块绑定，反向追踪每个 chunk ID 的功能归属。不想猜的话，用「侦查七步法」。
 
 ---
 
@@ -144,7 +145,7 @@ cp -r assets/public/static/js assets/public/static/js.bak
 1. **永远精确字符串替换**，不用正则
 2. **修改前搜索确认作用域**，一处还是多处
 3. **修改前检查敏感上下文**（Cookie、主题、阅读器 — 见下方）
-4. **改前 commit，改后 grep**，每小步一个提交
+4. **每小步验证后再继续**（Git 模式：改前 commit 改后 grep；无 Git 模式：改前备份文件）
 5. **删 chunk 前双重确认**：`n.e()` 和 `n.bind()` 无残留引用
 6. **共享代码全量搜索**，不遗漏任何重复 chunk
 7. **不用 `git add -A`**，指定具体文件
@@ -286,68 +287,87 @@ grep -oP '.{0,200}要删除的字符串.{0,200}' target.js \
 
 ---
 
-## 分支 A：仅去广告
+## 场景 A：去广告
 
-> 适用场景：保留游戏/电影板块，清除所有广告。
-> 每个步骤都可以独立执行。步骤编号 = 建议顺序，不是强制依赖。
+> **适用场景**：保留游戏/电影板块，清除所有广告。
+> **以下所有代码块均为 v2.0.29 示例，用于展示修改模式。新版本中具体的 chunk ID、变量名、替换字符串可能不同——请先执行「侦查七步法」定位，再按相同模式修改。**
 
 ### A1. 全局 ad_free 标志
 
 **文件**：`main.*.js` | **难度**：★ | **风险**：低
 
 ```python
+# v2.0.29 示例
 ("ad_free:!1", "ad_free:!0", "全局免广告")
 ```
 
 将 Redux store 中的 `ad_free` 强制为 `true`。广告组件渲染前会检查此标志。
 
+> **自查**：`grep "ad_free" main.*.js`，找到 `ad_free:!1` 或 `ad_free:!0` 附近的精确字符串。
+
 ### A2. 首页顶部 Banner
 
-**文件**：`6809.*.chunk.js` | **难度**：★★ | **风险**：低
+**文件**：含 `app_home_top` 的 chunk | **难度**：★★ | **风险**：低
 
 ```python
-# 渲染替换为 null
+# v2.0.29 示例 — 新版本需先 grep "app_home_top" 定位实际字符串
 ("(0,N.jsx)(E.A,{adKey:\"app_home_top\",adIndex:e})", "null", "首页 banner")
-# 数据源清空
 ("bannerList:null", "bannerList:[]", "banner 数据源")
 ```
 
-### A3. 路由插屏 + 首页浮动 + 底部固定
+> **自查**：`grep -l "app_home_top" assets/public/static/js/*.js` 定位文件，再 `grep -oP '.{0,80}app_home_top.{0,80}'` 提取精确替换字符串。
 
-**文件**：`6809.*.chunk.js` | **难度**：★ | **风险**：低
+### A3. 路由插屏 + 首页浮动
+
+**文件**：含 `app_route` 的 chunk（通常与 A2 同一文件） | **难度**：★ | **风险**：低
 
 ```python
+# v2.0.29 示例
 ("(0,N.jsx)(E.A,{adKey:\"app_route\"})", "null", "路由插屏")
 ("(0,N.jsx)(E.A,{adKey:\"app_home_float\"})", "null", "首页浮动")
 ```
 
+> **自查**：`grep -oP '.{0,80}app_route.{0,80}'` 和 `grep -oP '.{0,80}app_home_float.{0,80}'` 提取替换字符串。
+
 ### A4. 闪屏广告
 
-**文件**：`6809.*.chunk.js` | **难度**：★★ | **风险**：中
+**文件**：含 `app_splash` 的 chunk | **难度**：★★ | **风险**：中
 
 ```python
+# v2.0.29 示例
 ("[\"app_splash\",\"app_splash2\",\"app_splash_bottom\"].map(", "[].map(", "闪屏数据源")
 ```
 
-额外搜索 `2===M` 附近逻辑，确保启动页跳过广告索引（通常为 3）。
+> **自查**：`grep -oP '.{0,120}\"app_splash\".{0,120}'` 提取完整的数据源数组，改为空数组。额外搜索启动页渲染逻辑中的广告索引（通常为数字 3），确认跳过。
 
 ### A5. 漫画详情页
 
-**文件**：`7451.*.chunk.js` | **难度**：★★ | **风险**：低
+**文件**：含 `app_detail_tab_bottom` 的 chunk | **难度**：★★ | **风险**：低
 
-搜索 `app_detail_tab_bottom_jm3` 和 `app_detail_introduction_bottom_jm3`，将对应 JSX 渲染替换为 `null`。
+```python
+# v2.0.29 示例 — 将广告 JSX 渲染替换为 null
+("(0,N.jsx)(E.A,{adKey:\"app_detail_tab_bottom_jm3\"})", "null", "详情页底部")
+("(0,N.jsx)(E.A,{adKey:\"app_detail_introduction_bottom_jm3\"})", "null", "详情简介底部")
+```
+
+> **自查**：`grep -l "app_detail" assets/public/static/js/*.js` 定位文件，再用 `grep -oP '.{0,80}app_detail.{0,80}'` 提取精确替换字符串。
 
 ### A6. 搜索页底部
 
-**文件**：`5884.*.chunk.js` | **难度**：★ | **风险**：低
+**文件**：含 `app_search_bottom` 的 chunk（即搜索页面 chunk） | **难度**：★ | **风险**：低
 
-搜索 `app_search_bottom_jm3`，替换为 `null`。
+```python
+# v2.0.29 示例
+("adKey:\"app_search_bottom_jm3\"", "adKey:\"\"", "搜索页底部广告")
+```
 
-> ⚠️ 5884 是搜索页面的核心 chunk。**只改广告渲染，绝不删文件。**
+> ⚠️ 此 chunk 是搜索页面的核心。**只改广告渲染，绝不删文件。**
+
+> **自查**：`grep -l "app_search_bottom" assets/public/static/js/*.js` 定位，提取 JSX 替换为 null。
 
 ### A7. 顶部文字链接（关键步骤）
 
-**文件**：多个 chunk | **难度**：★★★ | **风险**：低
+**文件**：所有含 `first_links` 的 chunk | **难度**：★★★ | **风险**：低
 
 广告链：`first_links 数据 → exchange_link 组件 → 页面顶部`
 
@@ -361,28 +381,37 @@ grep -rl "first_links" assets/public/static/js/*.js | grep -v ".map"
 在每个命中文件中执行：
 
 ```python
+# v2.0.29 示例 — 新版本需 grep 确认实际字符串格式
 ("return[...X.first_links||[],...Y]", "return[]", "first_links → 空")
 ```
 
-在 `7999.*.chunk.js` 中额外处理：
+额外处理 `exchange_link`（通常在含 `Module 8284` 的 chunk 中）：
 
 ```python
+# v2.0.29 示例
 ("exchange_link:...something...", "exchange_link:b([])", "exchange_link 清空")
 ```
 
-v2.0.29 涉及 8 个文件：3319、6209、2030、1371、6125、9517、383、7999。
+> **自查**：`grep -oP '.{0,60}first_links.{0,60}'` 在每个命中文件中提取精确替换字符串。v2.0.29 涉及 8 个文件，新版本可能不同。
 
 ### A8. 确认页弹窗
 
-**文件**：`6809.*.chunk.js` | **难度**：★★ | **风险**：中
+**文件**：含 `splash_top` 或 `pop1_list` 的 chunk（通常与 A2 同一文件） | **难度**：★★ | **风险**：中
 
-在 G 组件（确认页）中搜索 `splash_top`、`pop1_list` 等弹窗数据源，清空对应 map。
+```python
+# v2.0.29 示例
+("splash_top:...", "splash_top:[]", "弹窗数据源")
+```
 
-### A9. 1791 补丁
+> **自查**：`grep -oP '.{0,80}pop1_list|splash_top.{0,80}'` 定位弹窗数据源，清空对应数组。
 
-**文件**：`1791.*.chunk.js` | **难度**：★ | **风险**：低
+### A9. ad_free 补丁确认
 
-确认 `L=!0`（ad_free 补丁）已设置。
+**文件**：含 `Module 8038` 的 chunk（共享模块 1） | **难度**：★ | **风险**：低
+
+确认广告组件中的 ad_free 检查逻辑已生效。v2.0.29 中对应 `L=!0`——新版本中变量名会变，需搜索 `ad_free` 在 chunk 文件中的出现位置确认。
+
+> **自查**：`grep "ad_free" assets/public/static/js/*.chunk.js`，确认广告组件中该标志被强制为 true。
 
 ### A10. 验证
 
@@ -400,24 +429,23 @@ v2.0.29 涉及 8 个文件：3319、6209、2030、1371、6125、9517、383、799
 
 ---
 
-## 分支 B：去广告 + 去板块
+## 场景 B：去广告 + 去板块
 
-> **前提**：分支 A 所有步骤已完成并验证通过。
+> **前提**：场景 A 所有步骤已完成并验证通过。
+> **以下所有代码块和 chunk ID 均为 v2.0.29 示例。新版本中 chunk ID、路由格式、lazy 组件变量名均可能变化——请先用「侦查七步法」定位，再按相同模式修改。**
 
 ### B1. 移除路由
 
 **文件**：`main.*.js` | **难度**：★★ | **风险**：中
 
-精确删除：
-
 ```js
-// 删除以下三个路由（变量名可能因版本而异）
+// v2.0.29 示例 — 新版本用 grep 'path:"/games"\|path:"/movies"' main.*.js 提取
 (0,Se.jsx)(e.qh,{path:"/games",element:...}),
 (0,Se.jsx)(e.qh,{path:"/movies",element:...}),
 (0,Se.jsx)(e.qh,{path:"/movies/:id",element:...}),
 ```
 
-> 如果不确定，用 `grep 'path:"/games"\|path:"/movies"' main.*.js` 找到精确字符串后删除。
+> **自查**：`grep -oP '.{0,100}path:"/(games|movies)[^"]*".{0,100}' main.*.js` 提取精确的路由定义行，逐个删除。如果用户只要删游戏或只要删电影，只删对应路由。
 
 ### B2. 移除 Tab 入口
 
@@ -431,11 +459,12 @@ grep -rl '"games"\|"movies"' assets/public/static/js/*.js | grep -v ".map"
 在每个命中的 chunk 中删除如下条目：
 
 ```js
+// v2.0.29 示例 — 新版本 grep -oP '.{0,80}"games".{0,80}' 提取
 {icon:...,nav:"games",label:x("nav.game"),link:"/games"},    // 删除
 {icon:...,nav:"movies",label:x("nav.movie"),link:"/movies"},   // 删除
 ```
 
-v2.0.29 涉及：6809、1791、3224、3742、7999
+> **自查**：先 `grep -rl '"games"\|"movies"'` 找到所有文件，再逐个 `grep -oP '.{0,80}"games".{0,80}'` 提取精确行删除。文件数量每版不同，v2.0.29 涉及 5 个。
 
 ### B3. 识别孤儿组件
 
@@ -454,7 +483,9 @@ for name, cid in lazy.items():
 "
 ```
 
-v2.0.29 孤儿：`ze`(7521 电影列表)、`De`(6120 电影播放器)、`Fe`(8063 游戏页/依赖 2846)
+v2.0.29 孤儿示例（仅供理解输出格式）：`ze`(7521 电影列表)、`De`(6120 电影播放器)、`Fe`(8063 游戏页/依赖 2846)。
+
+> **自查**：脚本自动运行，无需手动猜测。
 
 ### B4. 清理 main.js
 
@@ -468,19 +499,23 @@ v2.0.29 孤儿：`ze`(7521 电影列表)、`De`(6120 电影播放器)、`Fe`(806
 **删除前确认**（不可省略）：
 
 ```bash
-for ID in 2846 6120 7521; do
+# CHUNK_IDS 替换为 B3 脚本输出的 chunk ID 列表
+CHUNK_IDS="2846 6120 7521"  # v2.0.29 示例
+for ID in $CHUNK_IDS; do
   echo "=== chunk $ID ==="
   grep -r "n\.e($ID)" assets/public/static/js/ | grep -v ".map"  # 必须空
   grep -r "n\.bind(n,$ID)" assets/public/static/js/ | grep -v ".map"  # 必须空
 done
 ```
 
-确认后删除 `.js` 和 `.map` 文件。
+确认两项均为空后，删除对应的 `.js` 和 `.map` 文件。
+
+> **自查**：Chunk ID 列表来自 B3 脚本输出，不手动硬编码。
 
 ### B6. 验证
 
 ```
-[ ] 分支 A 全部通过（含核心功能）
+[ ] 场景 A 全部通过（含核心功能）
 [ ] 底部导航无"游戏""电影"
 [ ] 搜索正常（无白屏）
 [ ] 无残留 n.e() 引用
@@ -599,6 +634,47 @@ done
 ```bash
 find assets/public -name "*.map" -type f -delete
 ```
+
+### 侦查不匹配时的自查原则
+
+档中所有 `# v2.0.29 示例` 的代码块在新版本中**几乎必然不匹配**。遇到 `FAIL` 时，不要强行修改，按以下优先级自查：
+
+**P0 — 先扫描，再动手**：
+```bash
+# 第一步永远是扫描 adKey，这是最稳定的特征
+grep -roh 'adKey:"[^"]*"' assets/public/static/js/*.js | sort -u
+```
+新版本可能删除旧广告位、新增广告位、或改名。对照 adKey 映射表确认哪些还存在。
+
+**P1 — 字符串匹配失败 → 扩大搜索窗口**：
+```bash
+# 如果精确字符串找不到，截取关键词搜索周围上下文
+grep -oP '.{0,150}app_home_top.{0,150}' target_chunk.js
+# 从上下文中提取新的精确替换字符串
+```
+
+**P2 — 文件定位失败 → 特征搜索**：
+- 不找 `6809.*.chunk.js` → 找含 `app_home_top` 的 chunk
+- 不找 `1791.*.chunk.js` → 找含 `Module 8038` 的 chunk
+- 不找 `7451.*.chunk.js` → 找含 `app_detail` 的 chunk
+
+**P3 — 变量名变化 → 追踪语义等价**：
+- `L=!0` 可能变成 `M=!0` 或 `adFree=!0`
+- `E.A` (JSX 工厂) 可能变成 `s.jsx` 或 `r.createElement`
+- 关键：不找变量名，找**功能语义** — 广告组件始终接收 `adKey` 参数
+
+**P4 — 新增未知广告位 → 先记录，不盲改**：
+```bash
+grep -roh 'adKey:"[^"]*"' assets/public/static/js/*.js | sort -u | while read key; do
+  echo "$key → $(grep -l "$key" assets/public/static/js/*.js)"
+done
+```
+列出全部 adKey 及其所在文件，对照已知映射表。不在表中的，先向用户报告，不自行决定。
+
+**P5 — 以上均失败 → 坦诚告知**：
+"当前版本的代码结构与 v2.0.29 参考模式差异较大，以下广告位/模块我无法定位：xxx。是否需要我继续手动分析？"
+
+> 核心原则：**能定位就改，定位不了就报，不强行猜测替换。**
 
 ---
 
