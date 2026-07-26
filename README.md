@@ -23,9 +23,9 @@
 - 使用 `zipalign` 做 4 字节对齐
 - 使用 `apksigner` 进行 V1/V2 签名
 
-## AI 技能包 — 一键去广告 / 去板块
+## 自己修改/逆向 — Skills一键去广告 / 去板块
 
-逆向修改 APK 需要耗费大量人力物力：追踪 minified JS 中的广告链路、逐 chunk 修补、反复验证。为此，我们将整个修改流程打包为 **AI 可调用的 Skill**，接入支持 Skill 的 AI 编程工具即可自动化执行。
+逆向修改 APK 需要耗费大量人力物力：追踪 minified JS 中的广告链路、逐 chunk 修补、反复验证。为此，我将整个修改流程打包为 **AI 可调用的 Skill**，接入支持 Skill 的 AI 编程工具即可自动化执行。
 
 **Skill 位置**：[`skills/jmcomic-apk-mod/SKILL.md`](skills/jmcomic-apk-mod/SKILL.md)
 
