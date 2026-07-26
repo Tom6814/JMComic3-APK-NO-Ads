@@ -13,15 +13,6 @@
 ## 如何使用 / 下载
  [Releases](../../releases) 页面下载最新的 APK 安装包（苹果端请下载.mobileconfig文件）。
 
-## 源码说明
-此仓库包含的是解包并经过修改后的 APK 内部文件（React Chunks、资源文件等）。
-
-重新打包时不要直接使用 `jar c0Mf`，否则容易把 `resources.arsc` 压缩错误，导致安装时报 `-2`。
-
-建议流程：
-- 使用 `zip`/Python 脚本重新打包，并确保 `resources.arsc` 与图片资源以 `STORED` 方式写入
-- 使用 `zipalign` 做 4 字节对齐
-- 使用 `apksigner` 进行 V1/V2 签名
 
 ## 自己修改/逆向 — Skills一键去广告 / 去板块
 
@@ -36,6 +27,18 @@
 **直接使用**：将本仓库克隆到本地，在支持 Skill 的 AI 工具中调用 `jmcomic-apk-mod`，让 AI 按照 Skill 中的步骤自动完成修改。
 
 > 即使不使用 AI 辅助，Skill 文档本身也是一份完整的逆向修改手册，包含广告链路追踪、实战踩坑、故障排查等内容。
+
+
+## 源码说明
+此仓库包含的是解包并经过修改后的 APK 内部文件（React Chunks、资源文件等）。
+
+重新打包时不要直接使用 `jar c0Mf`，否则容易把 `resources.arsc` 压缩错误，导致安装时报 `-2`。
+
+建议流程：
+- 使用 `zip`/Python 脚本重新打包，并确保 `resources.arsc` 与图片资源以 `STORED` 方式写入
+- 使用 `zipalign` 做 4 字节对齐
+- 使用 `apksigner` 进行 V1/V2 签名
+
 
 ## Star History
 
