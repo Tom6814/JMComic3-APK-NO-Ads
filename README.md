@@ -1,5 +1,5 @@
 # JMComic3-APK-NO-Ads
-自用，JMComic3的去广告/美化版
+如题，是一个JMComic3的去广告/优化版
 
 真正的纯净版喵
 
