@@ -72,7 +72,8 @@ jobs:
             -x ".github/*" \
             -x ".gitignore" \
             -x "*.apk" \
-            -x "*.keystore"
+            -x "*.keystore" \
+            -x "skills/*"
           
           echo "Unsigned APK size: $(du -h app-unsigned.apk | cut -f1)"
           

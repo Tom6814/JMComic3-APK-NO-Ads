@@ -21,6 +21,20 @@
 - 使用 `zipalign` 做 4 字节对齐
 - 使用 `apksigner` 进行 V1/V2 签名
 
+## AI 技能包 — 一键去广告 / 去板块
+
+逆向修改 APK 需要耗费大量人力物力：追踪 minified JS 中的广告链路、逐 chunk 修补、反复验证。为此，我们将整个修改流程打包为 **AI 可调用的 Skill**，接入支持 Skill 的 AI 编程工具即可自动化执行。
+
+**Skill 位置**：[`skills/jmcomic-apk-mod/SKILL.md`](skills/jmcomic-apk-mod/SKILL.md)
+
+**支持的两种模式**：
+- **分支 A：仅去广告** — 清除所有广告（banner、闪屏、插屏、文字链接），保留游戏/电影板块
+- **分支 B：去广告 + 去板块** — 在 A 基础上剔除游戏/电影路由、Tab 入口、孤儿 chunk
+
+**直接使用**：将本仓库克隆到本地，在支持 Skill 的 AI 工具中调用 `jmcomic-apk-mod`，让 AI 按照 Skill 中的步骤自动完成修改。
+
+> 即使不使用 AI 辅助，Skill 文档本身也是一份完整的逆向修改手册，包含广告链路追踪、实战踩坑、故障排查等内容。
+
 ## Star History
 
 <a href="https://www.star-history.com/?repos=Tom6814%2FJMComic3-NO-Ads&type=timeline&legend=top-left">
