@@ -91,7 +91,8 @@ cd "$WORK_DIR"
 | 广告范围 | "要去掉所有广告，还是只去掉特定类型的（闪屏/banner/文字链接）？" |
 | 板块去留 | "游戏和电影板块要保留、删除其中一部分、还是全部删除？" |
 | 修改方式 | "是否需要 Git 版本管理？还是直接改文件就行？" |
-| 打包需求 | "修改完需要我帮你重新打包成 APK 吗？" |
+| 打包方式 | "修改完需要重新打包成 APK 吗？推荐使用 GitHub Actions 在线打包，无需安装 Android SDK（约 1GB），零本地环境依赖。" |
+| 打包类型 | "需要哪种 APK？Debug（调试版，~25MB，可直接安装）/ Release（发布版，~25MB，需签名）/ 两种都要？" |
 
 **问法示例**（用户说"帮我去广告"时）：
 
@@ -101,7 +102,8 @@ cd "$WORK_DIR"
 1. 广告范围 — 所有广告都去？还是保留某些（如闪屏）？
 2. 板块去留 — 游戏和电影板块要不要一起删掉？
 3. 版本管理 — 需要 Git 追踪修改记录，还是直接改文件就行？
-4. 打包 — 改完需要重新打包成 APK 吗？
+4. 打包方式 — 推荐 GitHub Actions 在线打包（无需装 Android SDK），还是本地打包？
+5. 打包类型 — Debug（可直接安装）/ Release（需签名）/ 都要？
 ```
 
 根据用户回答，运行「[意图解析流程](#意图解析流程)」生成步骤清单，展示给用户确认后再动手。
@@ -736,13 +738,44 @@ echo "*.map" >> .gitignore
 
 ## 构建与部署
 
+修改完成后，将修改后的文件重新打包为 APK。
+
+### 打包方式选择
+
+**推荐：GitHub Actions 在线打包** — 无需安装 Android SDK（约 1GB+），零本地环境依赖，适用于所有用户。
+
+**本地打包** — 需安装 JDK 17+ 和 Android SDK Build-Tools，适用于开发者。
+
+> 在需求确认阶段就应告知用户这个选项。大多数用户选择 GitHub Actions 即可。
+
+### APK 类型说明
+
+| 类型 | 大小 | 签名 | 用途 |
+|------|------|------|------|
+| **Debug APK** | ~25MB | 自动 debug 签名 | 直接安装测试，无需配置签名。适合自己用 |
+| **Release APK** | ~25MB | 需提供 keystore | 正式发布用。未签名或自签名的 release APK 也可直接安装 |
+| **两者都要** | ~50MB 总计 | - | 同时产出 debug 和 release 版本 |
+
+> Debug 和 Release 体积几乎相同，区别仅在于签名方式。大部分用户选 Debug 即可。
+
+### 方式一：GitHub Actions 在线打包（推荐）
+
+将修改推送到 GitHub 仓库后，Actions 自动构建。用户只需从 Artifacts 下载 APK。
+
 ```yaml
-# .github/workflows/build-release-apk.yml
-name: Build Release APK
+# .github/workflows/build-apk.yml
+name: Build APK
 on:
   push:
     branches: [main, master]
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'APK 类型'
+        required: true
+        type: choice
+        options: [debug, release, both]
+        default: debug
 
 jobs:
   build:
@@ -751,42 +784,82 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: {java-version: '17', distribution: 'temurin'}
-      - name: Package APK
+      - uses: android-actions/setup-android@v3
+
+      - name: Package APK (Debug)
+        if: ${{ github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == 'both' }}
         run: |
           rm -f META-INF/CERT.RSA META-INF/CERT.SF META-INF/MANIFEST.MF
-          zip -D -0 app-unsigned.apk resources.arsc classes.dex
-          zip -D app-unsigned.apk AndroidManifest.xml DebugProbesKt.bin
+          zip -D -0 app-debug-unsigned.apk resources.arsc classes.dex DebugProbesKt.bin AndroidManifest.xml
           zip -r -D -n ".png:.jpg:.jpeg:.gif:.webp:.mp3:.mp4:.ogg:.dex" \
-            app-unsigned.apk assets/ kotlin/ META-INF/ org/ res/ \
-            -x "*.DS_Store" "__MACOSX/*" ".git/*" ".github/*" \
-               ".gitignore" "*.apk" "*.keystore" "skills/*"
-      - name: Sign APK
-        run: |
-          keytool -genkey -keystore debug.keystore -alias debug \
+            app-debug-unsigned.apk assets/ kotlin/ META-INF/ org/ res/ \
+            -x "*.DS_Store" "__MACOSX/*" ".git/*" ".github/*" ".gitignore" "*.apk" "*.keystore" "skills/*"
+          keytool -genkey -keystore debug.keystore -alias androiddebugkey \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass android -keypass android \
-            -dname "CN=JM, OU=Dev, O=JM, L=CN" -noprompt
-          $ANDROID_SDK/build-tools/34.0.0/zipalign -v -p 4 app-unsigned.apk app-aligned.apk
-          $ANDROID_SDK/build-tools/34.0.0/apksigner sign \
+            -dname "CN=Debug, OU=Dev, O=JM" -noprompt
+          $ANDROID_SDK_ROOT/build-tools/34.0.0/zipalign -v -p 4 app-debug-unsigned.apk app-debug.apk
+          $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner sign \
             --ks debug.keystore --ks-pass pass:android \
-            --out app-release.apk app-aligned.apk
+            --out JMComic3-debug.apk app-debug.apk
+
+      - name: Package APK (Release)
+        if: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == 'both' }}
+        run: |
+          rm -f META-INF/CERT.RSA META-INF/CERT.SF META-INF/MANIFEST.MF
+          zip -D -0 app-release-unsigned.apk resources.arsc classes.dex DebugProbesKt.bin AndroidManifest.xml
+          zip -r -D -n ".png:.jpg:.jpeg:.gif:.webp:.mp3:.mp4:.ogg:.dex" \
+            app-release-unsigned.apk assets/ kotlin/ META-INF/ org/ res/ \
+            -x "*.DS_Store" "__MACOSX/*" ".git/*" ".github/*" ".gitignore" "*.apk" "*.keystore" "skills/*"
+          $ANDROID_SDK_ROOT/build-tools/34.0.0/zipalign -v -p 4 app-release-unsigned.apk app-release-aligned.apk
+          $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner sign \
+            --ks release.keystore --ks-pass pass:${{ secrets.KEYSTORE_PASS }} \
+            --out JMComic3-release.apk app-release-aligned.apk
+
       - uses: actions/upload-artifact@v4
-        with: {name: JMComic3-Mod, path: app-release.apk}
+        if: ${{ github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == 'both' }}
+        with: {name: JMComic3-debug, path: JMComic3-debug.apk}
+      - uses: actions/upload-artifact@v4
+        if: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == 'both' }}
+        with: {name: JMComic3-release, path: JMComic3-release.apk}
 ```
 
-下载产物：
+**首次使用 GitHub Actions 打包前的操作**：
+1. 将项目推送到 GitHub 仓库
+2. 将上述 YAML 写入 `.github/workflows/build-apk.yml`
+3. 在仓库 Settings → Secrets 中添加 `KEYSTORE_PASS`（仅 release 需要）
+4. 进入 Actions 页面，手动触发 `Build APK` workflow，选择 `build_type`
+5. 等待 2-3 分钟，从 Artifacts 下载 APK
+
+### 方式二：本地打包
+
+需要本地安装 JDK 17+ 和 Android SDK Build-Tools。适用于开发者或网络受限场景。
+
 ```bash
-RUN=$(curl -s -H "Authorization: token <TOKEN>" \
-  "https://api.github.com/repos/<OWNER>/<REPO>/actions/runs?branch=<BRANCH>&per_page=1" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['workflow_runs'][0]['id'])")
-
-ARTIFACT=$(curl -s -H "Authorization: token <TOKEN>" \
-  "https://api.github.com/repos/<OWNER>/<REPO>/actions/runs/$RUN/artifacts" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['artifacts'][0]['id'])")
-
-curl -sL -H "Authorization: token <TOKEN>" \
-  "https://api.github.com/repos/<OWNER>/<REPO>/actions/artifacts/$ARTIFACT/zip" -o apk.zip
+# Debug APK（自动签名，可直接安装）
+cd "$WORK_DIR"
+rm -f META-INF/CERT.RSA META-INF/CERT.SF META-INF/MANIFEST.MF
+zip -D -0 app-unsigned.apk resources.arsc classes.dex DebugProbesKt.bin AndroidManifest.xml
+zip -r -D -n ".png:.jpg:.jpeg:.gif:.webp:.mp3:.mp4:.ogg:.dex" \
+  app-unsigned.apk assets/ kotlin/ META-INF/ org/ res/ \
+  -x "*.DS_Store" "__MACOSX/*" ".git/*" ".github/*" ".gitignore" "*.apk" "*.keystore" "skills/*"
+keytool -genkey -keystore debug.keystore -alias androiddebugkey \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -storepass android -keypass android \
+  -dname "CN=Debug" -noprompt
+zipalign -v -p 4 app-unsigned.apk app-aligned.apk
+apksigner sign --ks debug.keystore --ks-pass pass:android \
+  --out JMComic3-mod.apk app-aligned.apk
 ```
+
+```bash
+# Release APK（需提供 keystore 和密码）
+# ...同上，签名时替换 keystore 路径和密码
+apksigner sign --ks your-release.keystore --ks-pass pass:YOUR_PASS \
+  --out JMComic3-release.apk app-aligned.apk
+```
+
+> 本地打包需 ~1GB Android SDK + ~500MB JDK，磁盘空间不足时选择 GitHub Actions。
 
 ---
 
