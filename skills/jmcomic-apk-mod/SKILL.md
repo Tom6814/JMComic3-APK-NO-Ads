@@ -1,6 +1,6 @@
 ---
 name: "jmcomic-apk-mod"
-description: "JMComic3 APK 逆向修改：去除广告、移除游戏/电影板块。支持仅去广告、去广告+去板块，以及 AI 可执行的意图解析+自定义组合。基于 v2.0.29 实战经验。触发词：JMComic去广告、APK修改、去除游戏电影、jmcomic mod"
+description: "JMComic3 APK 逆向修改：输入 APK 文件，自动解包→去广告→移除游戏/电影板块。支持 AI 可执行的意图解析+自定义组合。基于 v2.0.29 实战经验。触发词：JMComic去广告、APK修改、去除游戏电影、jmcomic mod"
 ---
 
 # JMComic3 APK 逆向修改技能
@@ -61,11 +61,27 @@ Module 8284（文字链接）
 
 ## 通用前置步骤
 
-### 工作准备
+### 0. 解包 APK
+
+用户只需提供一个 `.apk` 文件，后续全部自动化。
 
 ```bash
+# 用户提供的 APK 路径（唯一需要用户指定的变量）
+APK_FILE="/path/to/JMComic3_v2.0.29.apk"
 WORK_DIR="/path/to/JMComic3v2.0.29"
+
+# 解包（APK 本质是 ZIP 文件）
+mkdir -p "$WORK_DIR"
+unzip -o "$APK_FILE" -d "$WORK_DIR"
 cd "$WORK_DIR"
+```
+
+> APK 内部结构速览：`classes.dex`（Java/Kotlin 字节码）、`resources.arsc`（编译后的资源表）、`assets/`（Web 前端文件，**我们主要修改这个目录**）、`res/`（Android 原生资源）、`META-INF/`（签名信息）、`AndroidManifest.xml`（清单文件）。
+
+### 1. 工作准备
+
+```bash
+# 初始化 Git 保留原始状态
 git init && git add -A && git commit -m "原始版本"
 
 # 按需求创建分支
