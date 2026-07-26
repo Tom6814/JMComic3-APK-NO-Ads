@@ -84,15 +84,69 @@ git checkout -b mod-no-games-movies  # 分支B：去广告+去板块
 
 1. **永远用精确字符串替换**。minified 代码中一个字符差之毫厘，结果谬以千里
 2. **修改前先搜索，确认只有一处匹配**。如果同一模式出现在多个位置，逐个理解再决定
-3. **修改前 git commit，修改后立即 grep 验证**。每个小改动一个 commit，出错时只需 revert 一步
-4. **删除 chunk 文件前，必须确认**：
+3. **修改前检查上下文是否触碰敏感区域**。用 grep 检查周围代码是否涉及 Cookie、主题、阅读器等核心功能（详见下方"禁止触碰的区域"）
+4. **修改前 git commit，修改后立即 grep 验证**。每个小改动一个 commit，出错时只需 revert 一步
+5. **删除 chunk 文件前，必须确认**：
    - `grep -r "n.e(CHUNK_ID)" assets/` 只在 main.js 中出现
    - `grep -r "n.bind(n,CHUNK_ID)" assets/` 只在 main.js 中出现
    - 对应的 lazy 组件未被任何路由使用
-5. **修改共享代码时，必须全量搜索**。同样的 tab 栏/广告逻辑可能在多个 chunk 中重复
-6. **不要用 `git add -A`**。始终指定具体文件，防止误提交 build-artifact、.bak 等无关文件
-7. **.map 文件在分析完成前不删**。它们是理解 minified 代码结构的唯一线索
-8. **任何模棱两可的 chunk，选择保留而不是删除**
+6. **修改共享代码时，必须全量搜索**。同样的 tab 栏/广告逻辑可能在多个 chunk 中重复
+7. **不要用 `git add -A`**。始终指定具体文件，防止误提交 build-artifact、.bak 等无关文件
+8. **.map 文件在分析完成前不删**。它们是理解 minified 代码结构的唯一线索
+9. **任何模棱两可的 chunk，选择保留而不是删除**
+
+### 禁止触碰的区域 — 误伤防护
+
+修改 minified JS 最大的风险不是"改不掉"，而是"改错了不该改的"。以下区域**绝对不要动**，否则会导致功能异常。
+
+#### 1. Cookie / 登录态 / 缓存
+
+**识别关键词**：`cookie`、`AVS`、`token`、`session`、`localStorage`、`cache`
+
+这些处理用户认证和数据缓存。修改可能导致登录状态丢失、无法记住阅读进度。
+
+#### 2. 亮暗色模式 / 主题切换
+
+**识别关键词**：`theme`、`dark`、`light`、`colorScheme`、`prefers-color`、`DarkMode`
+
+修改可能导致亮暗色切换失效、UI 颜色异常。在 v2.0.29 中，暗色模式是通过 Redux store 中的 `darkMode` 状态和 CSS 媒体查询实现的——这部分代码和广告系统完全独立，不要触碰。
+
+#### 3. 漫画阅读器核心逻辑
+
+**识别关键词**：`reader`、`viewer`、`page`、`scroll`、`zoom`、`image`
+
+修改可能导致阅读翻页、缩放、图片加载异常。
+
+#### 4. Redux Store 核心状态（除 ad_free 外）
+
+**文件**：`main.*.js`
+
+`ad_free` 是我们唯一需要修改的 Redux 状态。其他如 `darkMode`、`user`、`settings`、`searchHistory` 等**全部保留原样**。
+
+#### 5. Android 原生交互桥
+
+**识别关键词**：`Android`、`native`、`bridge`、`WebView`、`JavascriptInterface`、`postMessage`
+
+修改可能导致返回键、分享、下载等原生功能失效。
+
+#### 6. 网络请求 / API 层
+
+**识别关键词**：`fetch(`、`axios`、`request`、`.php`、`api`、`baseURL`
+
+修改可能导致所有页面数据加载失败。广告请求通常走独立的 API 端点，清除广告数据源（如 first_links 返空数组）比拦截网络请求更安全。
+
+#### 如何防止误伤
+
+在每次修改前，用 grep 确认要修改的上下文不涉及上述关键词：
+
+```bash
+# 修改某个 JSX 渲染前，检查周围 200 字符是否触碰敏感区域
+grep -oP '.{0,200}要删除的字符串.{0,200}' target.js | grep -iE 'cookie|token|theme|dark|reader|bridge|android|fetch'
+# 如果有输出 → 暂停，仔细审查上下文
+# 如果无输出 → 安全，继续修改
+```
+
+**黄金法则**：改代码时只替换你完全理解的部分。如果你看不懂某段 minified 代码在做什么，**跳过它**。
 
 ---
 
@@ -341,6 +395,12 @@ grep -rl "first_links" assets/public/static/js/*.js | grep -v ".map"
 [ ] 路由跳转无插屏广告
 [ ] 游戏/电影板块正常可用
 [ ] grep -r "adKey" 返回的条目均已处理或确认为无害
+[ ] ⚠️ 核心功能未受影响：
+    [ ] 亮暗色模式切换正常
+    [ ] Cookie / 登录态正常（收藏、历史记录不丢失）
+    [ ] 漫画阅读翻页、缩放正常
+    [ ] 搜索功能正常（关键字 + 分类筛选）
+    [ ] 下载功能正常
 ```
 
 ---
@@ -457,11 +517,15 @@ assets/public/static/js/7521.37bedf44.chunk.js + .map
 ### B6. 分支 B 验证 Checklist
 
 ```
-[ ] 分支 A 所有检查项通过
+[ ] 分支 A 所有检查项通过（含核心功能验证）
 [ ] 底部导航栏无"游戏"和"电影"入口
 [ ] 点击搜索正常（无白屏）
 [ ] 所有页面的顶部文字链接均已清除
 [ ] 无残留 n.e() 引用
+[ ] ⚠️ 删除 chunk 后的额外验证：
+    [ ] 所有页面路由跳转正常，无白屏
+    [ ] 亮暗色模式切换正常（不受 chunk 删除影响）
+    [ ] 阅读进度/收藏/历史记录持久化正常
 ```
 
 ---
