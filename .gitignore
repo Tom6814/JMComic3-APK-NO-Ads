@@ -19,3 +19,6 @@ build-artifact/
 # Backup files
 *.bak
 _*.png
+
+# Source maps (debug only, not needed in production)
+*.map
