@@ -37,6 +37,7 @@ git clone https://github.com/Tom6814/jmcomic-apk-mod-skill.git
 支持两种模式：**仅去广告**（保留游戏/电影） / **去广告 + 去板块**
 
 > Skill 文件同时包含在本仓库 [`skills/`](skills/jmcomic-apk-mod/SKILL.md) 目录下作为参考（不参与 APK 打包）。
+
 > 即使不用 AI，Skill 文档本身也是一份完整的逆向修改手册，包含广告链路追踪、实战踩坑、故障排查等内容。
 
 ---
