@@ -1,1 +1,0 @@
-task ':lifecycle:lifecycle-viewmodel-savedstate:writeVersionFile' property 'version'

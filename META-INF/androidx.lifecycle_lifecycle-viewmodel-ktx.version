@@ -1,1 +1,0 @@
-task ':lifecycle:lifecycle-viewmodel-ktx:writeVersionFile' property 'version'
