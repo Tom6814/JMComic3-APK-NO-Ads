@@ -50,6 +50,7 @@ jobs:
           zip -r -D -n ".png:.jpg:.jpeg:.gif:.webp:.mp3:.mp4:.ogg:.dex" app-unsigned.apk \
             assets/ kotlin/ META-INF/ org/ res/ \
             -x "*.DS_Store" \
+            -x "*.map" \
             -x "__MACOSX/*" \
             -x ".git/*" \
             -x ".github/*" \
