@@ -1,0 +1,21 @@
+{
+	"appId": "com.JMComic3.app",
+	"appName": "JMComic3",
+	"webDir": "build",
+	"server": {
+		"androidScheme": "http",
+		"cleartext": true
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchAutoHide": true,
+			"androidScaleType": "CENTER_CROP",
+			"showSpinner": true
+		},
+		"StatusBar": {
+			"backgroundColor": "#d1d1d1",
+			"style": "DARK",
+			"overlaysWebView": false
+		}
+	}
+}
