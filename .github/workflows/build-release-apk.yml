@@ -8,7 +8,7 @@ on:
       version_tag:
         description: 'Release tag (e.g. v2.0.29)'
         required: false
-        default: 'v2.0.29'
+        default: 'v2.0.30'
 
 jobs:
   build:
@@ -132,5 +132,5 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: JMComic3-v2.0.29-NoAds
+          name: JMComic3-v2.0.30-NoAds-NoGamesNoMovies
           path: app-release.apk
