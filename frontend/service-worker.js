@@ -14,6 +14,7 @@ const APP_SHELL = [
   "/index.html",
   "/offline.html",
   "/manifest.json",
+  "/pwa-patch.js",
   "/static/css/main.91718a26.css",
   "/static/js/main.2d30d0cc.js",
   FALLBACK_IMAGE,

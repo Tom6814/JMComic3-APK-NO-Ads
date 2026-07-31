@@ -5,7 +5,7 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/((?!static/|images/|logo|manifest|robots|service-worker|offline|cordova).*)",
+      "source": "/((?!static/|images/|logo|manifest|robots|service-worker|offline|cordova|pwa-patch).*)",
       "destination": "/index.html"
     }
   ],
@@ -23,6 +23,12 @@
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
         { "key": "Content-Type", "value": "application/manifest+json" },
         { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/pwa-patch.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {

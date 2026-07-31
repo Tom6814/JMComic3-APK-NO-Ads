@@ -40,6 +40,8 @@
   <body>
     <noscript>請啟用 JavaScript 以使用 JMComic3。</noscript>
     <div id="root"></div>
+    <!-- PWA Patch: 必须在 main.js 之前加载，用于解除 App-only 阻断 -->
+    <script defer="defer" src="/pwa-patch.js"></script>
     <script defer="defer" src="/static/js/main.2d30d0cc.js"></script>
   </body>
 </html>
