@@ -1,0 +1,23 @@
+# Python scripts
+*.py
+
+# APK files
+*.apk
+
+# keystore files
+*.keystore
+*.jks
+
+# macOS
+.DS_Store
+__MACOSX/
+
+# IDE
+.idea/
+.vscode/
+
+# GitHub
+.github/
+
+# Git
+.git/
