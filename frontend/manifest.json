@@ -1,0 +1,115 @@
+{
+  "id": "jmcomic3-pwa-v2.0.30",
+  "short_name": "JMComic3",
+  "name": "JMComic3 - 成人漫畫",
+  "description": "JMComic3 線上漫畫瀏覽器 - 支援離線閱讀、收藏追蹤",
+  "categories": ["entertainment", "books"],
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "theme_color": "#1a1a1a",
+  "background_color": "#1a1a1a",
+  "lang": "zh-Hant",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "logo48.png",
+      "type": "image/png",
+      "sizes": "48x48"
+    },
+    {
+      "src": "logo72.png",
+      "type": "image/png",
+      "sizes": "72x72"
+    },
+    {
+      "src": "logo92.png",
+      "type": "image/png",
+      "sizes": "92x92",
+      "purpose": "any"
+    },
+    {
+      "src": "logo128.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "logo144.png",
+      "type": "image/png",
+      "sizes": "144x144"
+    },
+    {
+      "src": "logo152.png",
+      "type": "image/png",
+      "sizes": "152x152"
+    },
+    {
+      "src": "logo180.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo384.png",
+      "type": "image/png",
+      "sizes": "384x384",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo1024.png",
+      "type": "image/png",
+      "sizes": "1024x1024"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/splash.jpg",
+      "sizes": "750x1334",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "JMComic3 首頁"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "最新上傳",
+      "short_name": "最新",
+      "description": "瀏覽最新上傳漫畫",
+      "url": "/?tab=latest",
+      "icons": [{ "src": "logo92.png", "sizes": "92x92" }]
+    },
+    {
+      "name": "熱門排行",
+      "short_name": "熱門",
+      "description": "查看熱門漫畫排行",
+      "url": "/?tab=hot",
+      "icons": [{ "src": "logo92.png", "sizes": "92x92" }]
+    },
+    {
+      "name": "分類瀏覽",
+      "short_name": "分類",
+      "description": "依分類瀏覽漫畫",
+      "url": "/?tab=categories",
+      "icons": [{ "src": "logo92.png", "sizes": "92x92" }]
+    }
+  ],
+  "related_applications": [],
+  "iarc_rating_id": "adult",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  }
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1a1a1a" />
+    <title>JMComic3 - 離線模式</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #1a1a1a;
+        color: #e0e0e0;
+        padding: 2em;
+      }
+      .card {
+        background: #2a2a2a;
+        border-radius: 16px;
+        padding: 2.5em 2em;
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      }
+      .icon { font-size: 3rem; margin-bottom: 0.5em; }
+      h1 { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5em; color: #fff; }
+      p { font-size: 0.9rem; color: #999; line-height: 1.6; margin-bottom: 1.5em; }
+      .btns { display: flex; gap: 0.75em; justify-content: center; flex-wrap: wrap; }
+      button {
+        padding: 0.6em 1.5em;
+        font-size: 0.95rem;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: opacity 0.2s, transform 0.15s;
+      }
+      button:active { transform: scale(0.96); }
+      .retry {
+        background: #ff7b00;
+        color: #fff;
+      }
+      .home {
+        background: #3a3a3a;
+        color: #ccc;
+      }
+      .info {
+        margin-top: 1.2em;
+        font-size: 0.75rem;
+        color: #666;
+      }
+      .info a { color: #888; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="icon">&#x1F4E1;</div>
+      <h1>目前為離線模式</h1>
+      <p>網路連線出了點問題，<br />請檢查你的網路後再試一次。</p>
+      <div class="btns">
+        <button class="retry" id="retryBtn">重新連線</button>
+        <button class="home" id="homeBtn">返回首頁</button>
+      </div>
+      <div class="info">
+        已快取 <span id="version">v2.0.30</span> &middot;
+        <a href="https://discord.gg/V74p7HM" target="_blank" rel="noopener">Discord 回報</a>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("retryBtn").addEventListener("click", () => location.reload());
+      document.getElementById("homeBtn").addEventListener("click", () => {
+        window.location.href = "/";
+      });
+
+      // Detect when back online and auto-reload
+      window.addEventListener("online", () => {
+        const banner = document.createElement("div");
+        banner.style.cssText = "position:fixed;top:0;left:0;right:0;background:#4caf50;color:#fff;text-align:center;padding:0.5em;font-size:0.85rem;z-index:9999;cursor:pointer;";
+        banner.textContent = "網路已恢復，點擊重新載入";
+        banner.addEventListener("click", () => location.reload());
+        document.body.prepend(banner);
+        setTimeout(() => banner.remove(), 5000);
+      });
+    </script>
+  </body>
+</html>

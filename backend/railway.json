@@ -1,0 +1,12 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "gradle buildFatJar --no-daemon"
+  },
+  "deploy": {
+    "startCommand": "java -jar build/libs/jmcomic-proxy.jar",
+    "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 10,
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
