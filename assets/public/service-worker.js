@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = "offline-cache-v2.0.29";
-const OFFLINE_URL = "/offline.html?v=2.0.29";
-const FALLBACK_IMAGE = "/images/cover_default.jpg?v=2.0.29";
+const CACHE_NAME = "offline-cache-v2.0.30";
+const OFFLINE_URL = "/offline.html?v=2.0.30";
+const FALLBACK_IMAGE = "/images/cover_default.jpg?v=2.0.30";
 
 const PRECACHE_URLS = [OFFLINE_URL, FALLBACK_IMAGE];
 
