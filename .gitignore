@@ -1,24 +1,23 @@
-# Build output
+# Python scripts
+*.py
+
+# APK files
 *.apk
-*.aab
+
+# keystore files
 *.keystore
+*.jks
 
 # macOS
 .DS_Store
-__MACOSX
+__MACOSX/
 
 # IDE
 .idea/
 .vscode/
-*.swp
-*.swo
 
-# Build artifacts
-build-artifact/
+# GitHub
+.github/
 
-# Backup files
-*.bak
-_*.png
-
-# Source maps (debug only, not needed in production)
-*.map
+# Git
+.git/
