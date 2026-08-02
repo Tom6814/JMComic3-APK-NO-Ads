@@ -4,10 +4,15 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    {
-      "source": "/((?!static/|images/|logo|manifest|robots|service-worker|offline|cordova|pwa-patch).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/static/(.*)", "destination": "/static/$1" },
+    { "source": "/images/(.*)", "destination": "/images/$1" },
+    { "source": "/logo(.*)", "destination": "/logo$1" },
+    { "source": "/manifest.json", "destination": "/manifest.json" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
+    { "source": "/service-worker.js", "destination": "/service-worker.js" },
+    { "source": "/offline.html", "destination": "/offline.html" },
+    { "source": "/pwa-patch.js", "destination": "/pwa-patch.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
