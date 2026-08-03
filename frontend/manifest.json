@@ -72,16 +72,8 @@
     {
       "src": "logo1024.png",
       "type": "image/png",
-      "sizes": "1024x1024"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "images/splash.jpg",
-      "sizes": "750x1334",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "JMComic3 首頁"
+      "sizes": "1024x1024",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
@@ -90,26 +82,22 @@
       "short_name": "最新",
       "description": "瀏覽最新上傳漫畫",
       "url": "/?tab=latest",
-      "icons": [{ "src": "logo92.png", "sizes": "92x92" }]
+      "icons": [{ "src": "logo92.png", "sizes": "92x92", "type": "image/png" }]
     },
     {
       "name": "熱門排行",
       "short_name": "熱門",
       "description": "查看熱門漫畫排行",
       "url": "/?tab=hot",
-      "icons": [{ "src": "logo92.png", "sizes": "92x92" }]
+      "icons": [{ "src": "logo92.png", "sizes": "92x92", "type": "image/png" }]
     },
     {
       "name": "分類瀏覽",
       "short_name": "分類",
       "description": "依分類瀏覽漫畫",
       "url": "/?tab=categories",
-      "icons": [{ "src": "logo92.png", "sizes": "92x92" }]
+      "icons": [{ "src": "logo92.png", "sizes": "92x92", "type": "image/png" }]
     }
   ],
-  "related_applications": [],
-  "iarc_rating_id": "adult",
-  "launch_handler": {
-    "client_mode": ["navigate-existing", "auto"]
-  }
+  "related_applications": []
 }
