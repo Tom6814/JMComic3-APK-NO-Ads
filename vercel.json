@@ -12,6 +12,7 @@
     { "source": "/service-worker.js", "destination": "/service-worker.js" },
     { "source": "/offline.html", "destination": "/offline.html" },
     { "source": "/pwa-patch.js", "destination": "/pwa-patch.js" },
+    { "source": "/jmcomic3-pwa.mobileconfig", "destination": "/jmcomic3-pwa.mobileconfig" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
@@ -28,6 +29,13 @@
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
         { "key": "Content-Type", "value": "application/manifest+json" },
         { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/jmcomic3-pwa.mobileconfig",
+      "headers": [
+        { "key": "Content-Type", "value": "application/x-apple-aspen-config" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {

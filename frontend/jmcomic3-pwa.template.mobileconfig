@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.webClip.managed</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadIdentifier</key>
+			<string>com.jmcomic3.webclip</string>
+			<key>PayloadUUID</key>
+			<string>A1B2C3D4-5678-90AB-CDEF-123456789000</string>
+			<key>PayloadDisplayName</key>
+			<string>JMComic3 Web Clip</string>
+			<key>Label</key>
+			<string>JMComic3</string>
+			<key>URL</key>
+			<string>https://web.jmcomic.uk</string>
+			<key>IsRemovable</key>
+			<true/>
+			<key>FullScreen</key>
+			<true/>
+			<key>Precomposed</key>
+			<true/>
+			<key>Icon</key>
+			<data>
+				REPLACE_WITH_LOGO180_BASE64
+			</data>
+		</dict>
+	</array>
+	<key>PayloadDisplayName</key>
+	<string>JMComic3 - PWA 桌面捷徑</string>
+	<key>PayloadIdentifier</key>
+	<string>com.jmcomic3.pwa</string>
+	<key>PayloadOrganization</key>
+	<string>JMComic3</string>
+	<key>PayloadDescription</key>
+	<string>安裝後將在桌面建立 JMComic3 全螢幕網頁應用捷徑。</string>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>B2C3D4E5-6789-01AB-CDEF-234567890111</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>RemovalDisallowed</key>
+	<false/>
+</dict>
+</plist>
