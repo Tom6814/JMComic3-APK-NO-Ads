@@ -5,6 +5,21 @@ const FALLBACK_IMAGE = "/images/cover_default.jpg?v=2.1.9";
 
 const PRECACHE_URLS = [OFFLINE_URL, FALLBACK_IMAGE];
 
+// Cap concurrent outbound fetches to avoid unbounded request volume
+// (CWE-770: Allocation of Resources Without Limits or Throttling).
+const MAX_CONCURRENT_FETCHES = 20;
+let activeFetches = 0;
+
+function limitedFetch(request) {
+  if (activeFetches >= MAX_CONCURRENT_FETCHES) {
+    return Promise.reject(new Error("Too many concurrent requests"));
+  }
+  activeFetches++;
+  return fetch(request).finally(() => {
+    activeFetches--;
+  });
+}
+
 // =========================
 // install
 // =========================
@@ -44,7 +59,7 @@ self.addEventListener("fetch", (event) => {
   // HTML navigation
   // -------------------------
   if (request.mode === "navigate") {
-    event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_URL)));
+    event.respondWith(limitedFetch(request).catch(() => caches.match(OFFLINE_URL)));
     return;
   }
 
@@ -56,7 +71,7 @@ self.addEventListener("fetch", (event) => {
       caches.match(request).then((cached) => {
         if (cached) return cached;
 
-        return fetch(request)
+        return limitedFetch(request)
           .then((res) => {
             if (res && res.status === 200) {
               const copy = res.clone();
@@ -74,7 +89,7 @@ self.addEventListener("fetch", (event) => {
   // default: network first
   // -------------------------
   event.respondWith(
-    fetch(request)
+    limitedFetch(request)
       .then((res) => {
         if (res && res.status === 200) {
           const copy = res.clone();
