@@ -97,6 +97,21 @@ jobs:
           echo "=== APK Contents (first 50 entries) ==="
           unzip -l app-unsigned.apk | head -55
 
+      - name: Inject case-collision resources (res_extra)
+        run: |
+          # The tree is authored on macOS (case-insensitive FS), so it cannot hold both
+          # case variants of a resource (e.g. res/BM.png AND res/Bm.png). resources.arsc
+          # references both, so those entries are kept in res_extra/<original-path> and are
+          # added back here under their original paths. Existing entries are left untouched
+          # (resources.arsc stays STORED).
+          if [ -d res_extra ]; then
+            ( cd res_extra && zip -q -r -D -n ".png:.jpg:.jpeg:.gif:.webp:.mp3:.mp4:.ogg:.dex" \
+                "$GITHUB_WORKSPACE/app-unsigned.apk" * -x "*.DS_Store" )
+            echo "res/ entries after injection: $(unzip -l "$GITHUB_WORKSPACE/app-unsigned.apk" | awk '{print $4}' | grep -c '^res/')"
+          else
+            echo "res_extra/ not present - nothing to inject"
+          fi
+
       - name: Generate debug keystore
         run: |
           keytool -genkey -v \
